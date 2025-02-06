@@ -1,9 +1,9 @@
 import os
 import logging
 import jsonpickle
-import pathlib
+from pathlib import Path
 from distutils.file_util import copy_file
-from distutils.dir_util import copy_tree, mkpath
+from distutils.dir_util import copy_tree
 from ebbs import Builder
 from ebbs import OtherBuildError
 
@@ -30,7 +30,7 @@ class doxygen(Builder):
     def Build(this):
 
         this.outputPath = os.path.join(this.buildPath, "out")
-        mkpath(this.outputPath)
+        Path(this.outputPath).mkdir(parents=True, exist_ok=True)
 
         logging.debug(f"Building in {this.buildPath}")
         logging.debug(f"Packaging in {this.outputPath}")
@@ -56,11 +56,12 @@ class doxygen(Builder):
 
         # This nonsense is required because we need `cp incPath/* buildpath/` behavior instead of `cp incPath buildpath/`
         # TODO: is there a better way?
+        # FIXME: distutils has been removed from python 3.12
         for thing in os.listdir(styleSourcePath):
             thingPath = os.path.join(styleSourcePath, thing)
             destPath = os.path.join(this.buildPath, thing)
             if os.path.isfile(thingPath):
-                if (pathlib.Path(thingPath).suffix == ".py"):
+                if (Path(thingPath).suffix == ".py"):
                     continue #TODO: See above todo about cluttering repo_store.
                 copy_file(thingPath, destPath)
             elif os.path.isdir(thingPath):
